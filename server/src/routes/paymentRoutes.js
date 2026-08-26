@@ -1,16 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const {
+import express from "express";
+import {
   initiatePayment,
   confirmPayment,
   getPaymentByOrder,
   getPaymentHistory,
   getInvoice,
-} = require("../controllers/paymentController");
+} from "../controllers/paymentController.js";
+import { protect } from "../middleware/auth.js";
 
-// Adjust this import if Shani's middleware exports the function under a
-// different name - check server/src/middleware/auth.js
-const { protect } = require("../middleware/auth");
+const router = express.Router();
 
 router.post("/initiate", protect, initiatePayment);
 router.post("/confirm", protect, confirmPayment);
@@ -18,4 +16,4 @@ router.get("/history", protect, getPaymentHistory);
 router.get("/order/:orderId", protect, getPaymentByOrder);
 router.get("/:paymentId/invoice", protect, getInvoice);
 
-module.exports = router;
+export default router;

@@ -1,15 +1,13 @@
-const Payment = require("../models/Payment");
-const Order = require("../models/Order");
-const stripeService = require("../services/stripeService");
+import Payment from "../models/Payment.js";
+import Order from "../models/Order.js";
+import * as stripeService from "../services/stripeService.js";
 
 /**
  * NOTE: Adjust `order.totalAmount` / `order.total` below to match whatever
  * field name Sewwandi's Order model actually uses for the order total.
  */
 
-// POST /api/payments/initiate
-// body: { orderId, paymentMethod }  paymentMethod: "card" | "cash_on_delivery"
-exports.initiatePayment = async (req, res) => {
+export async function initiatePayment(req, res) {
   try {
     const { orderId, paymentMethod } = req.body;
 
@@ -46,7 +44,6 @@ exports.initiatePayment = async (req, res) => {
       return res.status(201).json({ success: true, payment });
     }
 
-    // card payment - create a mock Stripe payment intent
     const intent = await stripeService.createPaymentIntent({ amount });
 
     const payment = await Payment.create({
@@ -66,11 +63,9 @@ exports.initiatePayment = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
-};
+}
 
-// POST /api/payments/confirm
-// body: { paymentId, cardNumber }  (cardNumber is only used by the mock)
-exports.confirmPayment = async (req, res) => {
+export async function confirmPayment(req, res) {
   try {
     const { paymentId, cardNumber } = req.body;
 
@@ -120,10 +115,9 @@ exports.confirmPayment = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
-};
+}
 
-// GET /api/payments/order/:orderId
-exports.getPaymentByOrder = async (req, res) => {
+export async function getPaymentByOrder(req, res) {
   try {
     const payment = await Payment.findOne({ order: req.params.orderId });
     if (!payment) {
@@ -133,10 +127,9 @@ exports.getPaymentByOrder = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
-};
+}
 
-// GET /api/payments/history
-exports.getPaymentHistory = async (req, res) => {
+export async function getPaymentHistory(req, res) {
   try {
     const payments = await Payment.find({ user: req.user._id })
       .populate("order")
@@ -146,10 +139,9 @@ exports.getPaymentHistory = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
-};
+}
 
-// GET /api/payments/:paymentId/invoice
-exports.getInvoice = async (req, res) => {
+export async function getInvoice(req, res) {
   try {
     const payment = await Payment.findById(req.params.paymentId).populate("order");
 
@@ -179,4 +171,4 @@ exports.getInvoice = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
-};
+}
