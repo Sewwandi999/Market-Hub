@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import {
   initiatePayment,
   confirmPayment,
@@ -6,14 +6,14 @@ import {
   getPaymentHistory,
   getInvoice,
 } from "../controllers/paymentController.js";
-import { protect } from "../middleware/auth.js";
+import { authorize, protect } from "../middleware/auth.js";
 
-const router = express.Router();
+const router = Router();
 
-router.post("/initiate", protect, initiatePayment);
-router.post("/confirm", protect, confirmPayment);
-router.get("/history", protect, getPaymentHistory);
-router.get("/order/:orderId", protect, getPaymentByOrder);
-router.get("/:paymentId/invoice", protect, getInvoice);
+router.post("/initiate", protect, authorize("customer"), initiatePayment);
+router.post("/confirm", protect, authorize("customer"), confirmPayment);
+router.get("/history", protect, authorize("customer"), getPaymentHistory);
+router.get("/order/:orderId", protect, authorize("customer"), getPaymentByOrder);
+router.get("/:paymentId/invoice", protect, authorize("customer"), getInvoice);
 
 export default router;

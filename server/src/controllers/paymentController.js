@@ -3,8 +3,7 @@ import Order from "../models/Order.js";
 import * as stripeService from "../services/stripeService.js";
 
 /**
- * NOTE: Adjust `order.totalAmount` / `order.total` below to match whatever
- * field name Sewwandi's Order model actually uses for the order total.
+ * NOTE: order.totalAmount matches the field name in Sewwandi's Order model.
  */
 
 export async function initiatePayment(req, res) {
@@ -23,7 +22,7 @@ export async function initiatePayment(req, res) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    const amount = order.totalAmount || order.total || 0;
+    const amount = order.totalAmount || 0;
 
     if (paymentMethod === "cash_on_delivery") {
       const payment = await Payment.create({
@@ -37,13 +36,14 @@ export async function initiatePayment(req, res) {
         paidAt: new Date(),
       });
 
-      order.paymentStatus = "success";
+      order.paymentStatus = "paid";
       order.paymentMethod = "cash_on_delivery";
       await order.save();
 
       return res.status(201).json({ success: true, payment });
     }
 
+    // card payment - create a mock Stripe payment intent
     const intent = await stripeService.createPaymentIntent({ amount });
 
     const payment = await Payment.create({
@@ -94,7 +94,7 @@ export async function confirmPayment(req, res) {
       await payment.save();
 
       await Order.findByIdAndUpdate(payment.order, {
-        paymentStatus: "success",
+        paymentStatus: "paid",
         paymentMethod: "card",
       });
 
